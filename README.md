@@ -1,4 +1,3 @@
 # Linux-High-Performance-Server
 
-
-哈哈哈
+# 这是新的readme
