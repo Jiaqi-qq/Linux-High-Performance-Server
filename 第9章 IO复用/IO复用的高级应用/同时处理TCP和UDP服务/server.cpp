@@ -1,16 +1,17 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <cassert>
-#include <cstdio>
-#include <unistd.h>
-#include <cstring>
-#include <cstdlib>
-#include <sys/epoll.h>
 #include <fcntl.h>
-#include <cerrno>
+#include <netinet/in.h>
 #include <pthread.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define MAX_EVENT_NUMBER 1024
 #define TCP_BUFFER_SIZE 512
@@ -33,7 +34,7 @@ void addfd(int epollfd, int fd) {
 }
 
 int main(int argc, char* argv[]) {
-    if(argc <= 2) {
+    if (argc <= 2) {
         printf("usage: %s ip_address port_number\n", basename(argv[0]));
         return 1;
     }
@@ -75,53 +76,50 @@ int main(int argc, char* argv[]) {
     addfd(epollfd, listenfd);
     addfd(epollfd, udpfd);
 
-    while(true) {
+    while (true) {
         int number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
-        if(number < 0) {
+        if (number < 0) {
             printf("epoll failure\n");
             break;
         }
 
-        for(int i = 0; i < number; ++i) {
+        for (int i = 0; i < number; ++i) {
             int sockfd = events[i].data.fd;
-            if(sockfd == listenfd) {
+            if (sockfd == listenfd) {
                 sockaddr_in client_address;
                 socklen_t client_addrlength = sizeof(client_address);
                 int connfd = accept(listenfd, (sockaddr*)&client_address, &client_addrlength);
                 addfd(epollfd, connfd);
-            }
-            else if(sockfd == udpfd) {
+            } else if (sockfd == udpfd) {
                 char buf[UDP_BUFFER_SIZE];
                 memset(buf, '\0', UDP_BUFFER_SIZE);
                 sockaddr_in client_address;
                 socklen_t client_addrlength = sizeof(client_address);
 
                 ret = recvfrom(udpfd, buf, UDP_BUFFER_SIZE - 1, 0, (sockaddr*)&client_address, &client_addrlength);
-                if(ret > 0) {
+                if (ret > 0) {
+                    printf("udp:[%s]\n", buf);
                     sendto(udpfd, buf, UDP_BUFFER_SIZE - 1, 0, (sockaddr*)&client_address, client_addrlength);
                 }
-            }
-            else if(events[i].events & EPOLLIN) {
+            } else if (events[i].events & EPOLLIN) {
                 char buf[TCP_BUFFER_SIZE];
-                while(true) {
+                while (true) {
                     memset(buf, '\0', TCP_BUFFER_SIZE);
                     ret = recv(sockfd, buf, TCP_BUFFER_SIZE - 1, 0);
-                    if(ret < 0) {
-                        if((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                    if (ret < 0) {
+                        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
                             break;
                         }
                         close(sockfd);
                         break;
-                    }
-                    else if(ret == 0) {
+                    } else if (ret == 0) {
                         close(sockfd);
-                    }
-                    else {
+                    } else {
+                        printf("tcp:[%s]\n", buf);
                         send(sockfd, buf, ret, 0);
                     }
                 }
-            }
-            else {
+            } else {
                 printf("something else happened\n");
             }
         }
