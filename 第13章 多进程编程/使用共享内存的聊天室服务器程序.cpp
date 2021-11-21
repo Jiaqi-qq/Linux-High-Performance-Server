@@ -1,10 +1,4 @@
 #include <arpa/inet.h>
-#include <cassert>
-#include <cerrno>
-#include <csignal>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
@@ -13,6 +7,13 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <cassert>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define USER_LIMIT 5
 #define BUFFER_SIZE 1024
@@ -60,7 +61,7 @@ void addfd(int epollfd, int fd) {
 }
 
 void sig_handler(int sig) {
-    int save_errno = errno; // 可重入
+    int save_errno = errno;  // 可重入
     int msg = sig;
     send(sig_pipefd[1], (char *)&msg, 1, 0);
     errno = save_errno;
@@ -98,9 +99,9 @@ int run_child(int idx, client_data *users, char *share_mem) {
      */
     int child_epollfd = epoll_create(5);
     assert(child_epollfd != -1);
-    int connfd = users[idx].connfd; // 与客户端通信 双向
+    int connfd = users[idx].connfd;  // 与客户端通信 双向
     addfd(child_epollfd, connfd);
-    int pipefd = users[idx].pipefd[1]; // 与父进程通信 单向
+    int pipefd = users[idx].pipefd[1];  // 与父进程通信 单向
     addfd(child_epollfd, pipefd);
     int ret;
     /* 子进程需要设置自己的信号处理函数 */
@@ -201,15 +202,15 @@ int main(int argc, char *argv[]) {
     setnonblocking(sig_pipefd[1]);
     addfd(epollfd, sig_pipefd[0]);
 
-    addsig(SIGCHLD, sig_handler); // 子进程退出会发送这个信号到父进程
+    addsig(SIGCHLD, sig_handler);  // 子进程退出会发送这个信号到父进程
     addsig(
         SIGTERM,
-        sig_handler); // kill命令不加参数就是发送这个信号
-                      // 只有当前进程收到信号，子进程不会收到。如果当前进程被kill了，那么它的子进程的父进程将会是init，也就是pid为1的进程
+        sig_handler);  // kill命令不加参数就是发送这个信号
+                       // 只有当前进程收到信号，子进程不会收到。如果当前进程被kill了，那么它的子进程的父进程将会是init，也就是pid为1的进程
     addsig(
         SIGINT,
-        sig_handler); // 通过ctrl+c将会对当进程发送此信号
-                      // 信号被当前进程树接收到，不仅当前进程会收到信号，它的子进程也会收到
+        sig_handler);  // 通过ctrl+c将会对当进程发送此信号
+                       // 信号被当前进程树接收到，不仅当前进程会收到信号，它的子进程也会收到
     addsig(SIGPIPE, SIG_IGN);
     bool stop_server = false;
     bool terminate = false;
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
     /* 创建共享内存，作为所有客户socket连接的读缓存 */
     shmfd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     assert(shmfd != -1);
-    ret = ftruncate(shmfd, USER_LIMIT * BUFFER_SIZE); // 文件拓展大小。
+    ret = ftruncate(shmfd, USER_LIMIT * BUFFER_SIZE);  // 文件拓展大小。
     assert(ret != -1);
 
     share_mem = (char *)mmap(nullptr, USER_LIMIT * BUFFER_SIZE,
@@ -264,7 +265,7 @@ int main(int argc, char *argv[]) {
                 } else if (pid == 0) {
                     close(epollfd);
                     close(listenfd);
-                    close(users[user_count].pipefd[0]); // 子进程关闭读端
+                    close(users[user_count].pipefd[0]);  // 子进程关闭读端
                     close(sig_pipefd[0]);
                     close(sig_pipefd[1]);
                     run_child(user_count, users, share_mem);
@@ -272,7 +273,7 @@ int main(int argc, char *argv[]) {
                     exit(0);
                 } else {
                     close(connfd);
-                    close(users[user_count].pipefd[1]); // 父进程关闭写端
+                    close(users[user_count].pipefd[1]);  // 父进程关闭写端
                     addfd(epollfd, users[user_count].pipefd[0]);
                     users[user_count].pid = pid;
                     /* 记录新的客户端连接在数组users中的索引值，建立进程pid和该索引之间的映射关系
@@ -294,47 +295,47 @@ int main(int argc, char *argv[]) {
                 } else {
                     for (int i = 0; i < ret; ++i) {
                         switch (signals[i]) {
-                        /* 子进程退出，表示有某个客户端关闭了连接 */
-                        case SIGCHLD: {
-                            pid_t pid;
-                            int stat;
-                            while ((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
-                                /* 用子进程的pid取地被关闭的客户连接的编号 */
-                                int del_user = sub_process[pid];
-                                sub_process[pid] = -1;
-                                if ((del_user < 0) || (del_user > USER_LIMIT)) {
-                                    continue;
+                            /* 子进程退出，表示有某个客户端关闭了连接 */
+                            case SIGCHLD: {
+                                pid_t pid;
+                                int stat;
+                                while ((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
+                                    /* 用子进程的pid取地被关闭的客户连接的编号 */
+                                    int del_user = sub_process[pid];
+                                    sub_process[pid] = -1;
+                                    if ((del_user < 0) || (del_user > USER_LIMIT)) {
+                                        continue;
+                                    }
+                                    /* 清除第del_user个客户连接使用的相关数据 */
+                                    epoll_ctl(epollfd, EPOLL_CTL_DEL,
+                                              users[del_user].pipefd[0], 0);
+                                    close(users[del_user].pipefd[0]);
+                                    users[del_user] = users[--user_count];
+                                    sub_process[users[user_count].pid] = del_user;
                                 }
-                                /* 清除第del_user个客户连接使用的相关数据 */
-                                epoll_ctl(epollfd, EPOLL_CTL_DEL,
-                                          users[del_user].pipefd[0], 0);
-                                close(users[del_user].pipefd[0]);
-                                users[del_user] = users[--user_count];
-                                sub_process[users[user_count].pid] = del_user;
-                            }
-                            if (terminate && user_count == 0) {
-                                stop_server = true;
-                            }
-                            break;
-                        }
-                        case SIGTERM:
-                        case SIGINT: {
-                            /* 结束服务器程序 */
-                            printf("kill all the child now\n");
-                            if (user_count == 0) {
-                                stop_server = true;
+                                if (terminate && user_count == 0) {
+                                    stop_server = true;
+                                }
                                 break;
                             }
-                            for (int i = 0; i < user_count; ++i) {
-                                int pid = users[i].pid;
-                                kill(pid, SIGTERM);
+                            case SIGTERM:
+                            case SIGINT: {
+                                /* 结束服务器程序 */
+                                printf("kill all the child now\n");
+                                if (user_count == 0) {
+                                    stop_server = true;
+                                    break;
+                                }
+                                for (int i = 0; i < user_count; ++i) {
+                                    int pid = users[i].pid;
+                                    kill(pid, SIGTERM);
+                                }
+                                terminate = true;
+                                break;
                             }
-                            terminate = true;
-                            break;
-                        }
-                        default: {
-                            break;
-                        }
+                            default: {
+                                break;
+                            }
                         }
                     }
                 }
