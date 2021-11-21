@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
     server_address.sin_port = htons(port);
 
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-    assert(socket >= 0);
 
+    assert(socket >= 0);
     if (connect(sockfd, (sockaddr*)&server_address, sizeof(server_address)) < 0) {
         printf("connection failed\n");
     } else {
