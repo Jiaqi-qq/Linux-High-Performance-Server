@@ -14,7 +14,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "processpool.h"
+#include "半同步半异步进程池.h"
 
 /* 用于处理客户CGI请求的类，它可以作为processpool类的模板参数 */
 class cgi_conn {
@@ -45,6 +45,7 @@ class cgi_conn {
             }
             /* 如果对方关闭连接，则服务器也关闭连接 */
             else if (ret == 0) {
+                printf("%s:%d 关闭\n", inet_ntoa(m_address.sin_addr), m_address.sin_port);
                 removefd(m_epollfd, m_sockfd);
                 break;
             } else {
@@ -56,12 +57,12 @@ class cgi_conn {
                         break;
                     }
                 }
+
                 /* 如果没有遇到“\r\n” ，则需要读取更多客户数据 */
                 if (idx == m_read_idx) {
                     continue;
                 }
                 m_buf[idx - 1] = '\0';
-
                 char* file_name = m_buf;
                 /* 判断客户要运行的CGI程序是否存在 */
                 if (access(file_name, F_OK) == -1) {

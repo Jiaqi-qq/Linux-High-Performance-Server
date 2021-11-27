@@ -41,7 +41,8 @@ int main(int argc, char* argv[]) {
         while (1) {
             printf("i send:");
             memset(str, '\0', 1024);
-            cin.getline(str, sizeof(str));
+            cin.getline(str, 1024);
+            str[strlen(str)] = '\n';
             if (str[0] == '.') {
                 send(sockfd, str, strlen(str), MSG_OOB);
             } else {
