@@ -53,8 +53,7 @@ LINE_STATUS parse_line(char *buffer, int &checked_index, int &read_index) {
         temp = buffer[checked_index];
         // 如果当前的字节是 "\r"，即回车符，则说明可能读取到一个完整的行
         if (temp == '\r') {
-            // 如果 "\r"
-            // 字符碰巧是目前buffer中的最后一个已经被读入的客户数据，那么这次分析没有读取到一个完整的行，返回LINE_OPEN以表示还需要继续读取客户数据才能进一步分析
+            // 如果 "\r" 字符碰巧是目前buffer中的最后一个已经被读入的客户数据，那么这次分析没有读取到一个完整的行，返回LINE_OPEN以表示还需要继续读取客户数据才能进一步分析
             if ((checked_index + 1) == read_index) {
                 return LINE_OPEN;
             }

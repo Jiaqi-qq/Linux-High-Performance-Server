@@ -1,12 +1,13 @@
 #ifndef LOCKER_H
 #define LOCKER_H
 
-#include <exception>
 #include <pthread.h>
 #include <semaphore.h>
+
+#include <exception>
 /* 封装信号量的类 */
 class sem {
-  public:
+   public:
     /* 创建并初始化信号量 */
     sem() {
         if (sem_init(&m_sem, 0, 0) != 0) {
@@ -21,12 +22,12 @@ class sem {
     /* 增加信号量 */
     bool post() { return sem_post(&m_sem); }
 
-  private:
+   private:
     sem_t m_sem;
 };
 /* 封装互斥锁的类 */
 class locker {
-  public:
+   public:
     /* 创建并初始化互斥锁 */
     locker() {
         if (pthread_mutex_init(&m_mutex, nullptr) != 0) {
@@ -40,12 +41,12 @@ class locker {
     /* 释放互斥锁 */
     bool unlock() { return pthread_mutex_unlock(&m_mutex) == 0; }
 
-  private:
+   private:
     pthread_mutex_t m_mutex;
 };
 /* 封装条件变量的类 */
 class cond {
-  public:
+   public:
     /* 创建并初始化条件变量 */
     cond() {
         if (pthread_mutex_init(&m_mutex, nullptr) != 0) {
@@ -72,9 +73,9 @@ class cond {
     /* 唤醒等待条件变量的线程 */
     bool signal() { return pthread_cond_signal(&m_cond) == 0; }
 
-  private:
+   private:
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cond;
 };
 
-#endif // LOCKER_H
+#endif  // LOCKER_H

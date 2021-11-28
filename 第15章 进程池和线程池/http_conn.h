@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include "../第14章 多线程编程/locker.h"
@@ -40,22 +41,25 @@ class http_conn {
                   CONNECT,
                   PATCH };
     /* 解析客户请求时，主状态机所处的状态（回忆第8章） */
-    enum CHECK_STATE { CHECK_STATE_REQUESTLINE = 0,
-                       CHECK_STATE_HEADER,
-                       CHECK_STATE_CONTENT };
+    enum CHECK_STATE { CHECK_STATE_REQUESTLINE = 0,  //当前正在分析请求行
+                       CHECK_STATE_HEADER,           // 当前正在分析头部字段
+                       CHECK_STATE_CONTENT           // 当前正在分析content
+    };
     /* 服务器处理HTTP请求的可能结果 */
-    enum HTTP_CODE { NO_REQUEST,
-                     GET_REQUEST,
-                     BAD_REQUEST,
-                     NO_RESOURCE,
-                     FORBIDDEN_REQUEST,
-                     FILE_REQUEST,
-                     INTERNAL_ERROR,
-                     CLOSED_CONNECTION };
+    enum HTTP_CODE { NO_REQUEST,         // 请求不完整，需要继续读取客户数据
+                     GET_REQUEST,        // 获得了一个完整的客户请求
+                     BAD_REQUEST,        // 客户请求有语法错误
+                     NO_RESOURCE,        // 没有资源
+                     FORBIDDEN_REQUEST,  // 客户对资源没有足够的访问权限
+                     FILE_REQUEST,       // 文件已被请求
+                     INTERNAL_ERROR,     // 服务器内部错误
+                     CLOSED_CONNECTION   // 客户端已经关闭连接了
+    };
     /* 行的读取状态 */
-    enum LINE_STATUS { LINE_OK = 0,
-                       LINE_BAD,
-                       LINE_OPEN };
+    enum LINE_STATUS { LINE_OK = 0,  // 读取到完整的行
+                       LINE_BAD,     // 行出错
+                       LINE_OPEN     // 数据尚不完整
+    };
 
    public:
     /* 初始化新接收的连接 */
