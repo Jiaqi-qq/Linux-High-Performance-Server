@@ -101,7 +101,6 @@ void threadpool<T>::run() {
         if (!request) {
             continue;
         }
-        printf("%ld号线程执行:\n", pthread_self());
         request->process();
     }
 }
