@@ -241,7 +241,7 @@ http_conn::HTTP_CODE http_conn::process_read() {
            ((line_status = parse_line()) == LINE_OK)) {
         text = get_line();
         m_start_line = m_checked_idx;  // 记录下一行的起始位置
-        // printf("got 1 http line: %s\n", text);
+        printf("got 1 http line: %s\n", text);
 
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
