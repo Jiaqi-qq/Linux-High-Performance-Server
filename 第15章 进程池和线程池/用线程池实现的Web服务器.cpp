@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     } catch (...) {
         return 1;
     }
-
+    
     /* 预先为每个可能的客户连接分配一个http_conn对象 */
     http_conn* users = new http_conn[MAX_FD];
     assert(users);
@@ -87,6 +87,7 @@ int main(int argc, char* argv[]) {
     http_conn::m_epollfd = epollfd;
 
     while (true) {
+        printf("user_count: %d\n",  http_conn::m_user_count);
         int number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
         if ((number < 0) && (errno != EINTR)) {
             printf("epoll failure\n");

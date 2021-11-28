@@ -215,7 +215,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char* text) {
         text += strspn(text, " \t");
         m_host = text;
     } else {
-        printf("oop! unknow header %s\n", text);
+        // printf("oop! unknow header %s\n", text);
     }
 
     return NO_REQUEST;
@@ -241,7 +241,7 @@ http_conn::HTTP_CODE http_conn::process_read() {
            ((line_status = parse_line()) == LINE_OK)) {
         text = get_line();
         m_start_line = m_checked_idx;  // 记录下一行的起始位置
-        printf("got 1 http line: %s\n", text);
+        // printf("got 1 http line: %s\n", text);
 
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
