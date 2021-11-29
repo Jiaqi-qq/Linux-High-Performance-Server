@@ -426,18 +426,18 @@ bool http_conn::process_write(HTTP_CODE ret) {
             m_iv_count = 2;
             return true;
         } else {
-            const char *ok_string = "<html><body><H1>else ok_string</H1></body></html>";
+            const char *ok_string = "<html><body><H1>empty file</H1></body></html>";
             add_headers(strlen(ok_string));
             if (!add_content(ok_string)) {
                 return false;
             }
         }
+        break;
     }
     default: {
         return false;
     }
     }
-
     m_iv[0].iov_base = m_write_buf;
     m_iv[0].iov_len = m_write_idx;
     m_iv_count = 1;
