@@ -410,6 +410,14 @@ bool http_conn::process_write(HTTP_CODE ret) {
             }
             break;
         }
+        case NO_RESOURCE: {
+            add_status_line(404, error_404_title);
+            add_headers(strlen(error_404_form));
+            if (!add_content(error_404_form)) {
+                return false;
+            }
+            break;
+        }
         case FORBIDDEN_REQUEST: {
             add_status_line(403, error_403_title);
             add_headers(strlen(error_403_form));
@@ -450,7 +458,7 @@ bool http_conn::process_write(HTTP_CODE ret) {
 /* 由线程池中的工作线程调用，这是处理HTTP请求的入口函数 */
 void http_conn::process() {
     HTTP_CODE read_ret = process_read();
-    if (read_ret == NO_RESOURCE) {
+    if (read_ret == NO_REQUEST) {
         modfd(m_epollfd, m_sockfd, EPOLLIN);
         return;
     }

@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     http_conn::m_epollfd = epollfd;
 
     while (true) {
-        printf("user_count: %d\n", http_conn::m_user_count); // 数量并不准确
+        printf("user_count: %d\n", http_conn::m_user_count);  // 数量并不准确
         int number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
         if ((number < 0) && (errno != EINTR)) {
             printf("epoll failure\n");
@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
                 if (users[sockfd].read()) {
                     pool->append(users + sockfd);
                 } else {
+                    printf("close");
                     users[sockfd].close_conn();
                 }
             } else if (events[i].events & EPOLLOUT) {
