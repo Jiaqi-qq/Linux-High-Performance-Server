@@ -23,7 +23,7 @@
 #include "../第14章 多线程编程/locker.h"
 
 class http_conn {
-   public:
+  public:
     /* 文件名的最大长度 */
     static const int FILENAME_LEN = 200;
     /* 读缓冲区的大小 */
@@ -31,37 +31,32 @@ class http_conn {
     /* 写缓冲区的大小 */
     static const int WRITE_BUFFER_SIZE = 1024;
     /* HTTP请求方法，但我们仅支持GET */
-    enum METHOD { GET = 0,
-                  POST,
-                  HEAD,
-                  PUT,
-                  DELETE,
-                  TRACE,
-                  OPTIONS,
-                  CONNECT,
-                  PATCH };
+    enum METHOD { GET = 0, POST, HEAD, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH };
     /* 解析客户请求时，主状态机所处的状态（回忆第8章） */
-    enum CHECK_STATE { CHECK_STATE_REQUESTLINE = 0,  //当前正在分析请求行
-                       CHECK_STATE_HEADER,           // 当前正在分析头部字段
-                       CHECK_STATE_CONTENT           // 当前正在分析content
+    enum CHECK_STATE {
+        CHECK_STATE_REQUESTLINE = 0, //当前正在分析请求行
+        CHECK_STATE_HEADER,          // 当前正在分析头部字段
+        CHECK_STATE_CONTENT          // 当前正在分析content
     };
     /* 服务器处理HTTP请求的可能结果 */
-    enum HTTP_CODE { NO_REQUEST,         // 请求不完整，需要继续读取客户数据
-                     GET_REQUEST,        // 获得了一个完整的客户请求
-                     BAD_REQUEST,        // 客户请求有语法错误
-                     NO_RESOURCE,        // 没有资源
-                     FORBIDDEN_REQUEST,  // 客户对资源没有足够的访问权限
-                     FILE_REQUEST,       // 文件已被请求
-                     INTERNAL_ERROR,     // 服务器内部错误
-                     CLOSED_CONNECTION   // 客户端已经关闭连接了
+    enum HTTP_CODE {
+        NO_REQUEST,        // 请求不完整，需要继续读取客户数据
+        GET_REQUEST,       // 获得了一个完整的客户请求
+        BAD_REQUEST,       // 客户请求有语法错误
+        NO_RESOURCE,       // 没有资源
+        FORBIDDEN_REQUEST, // 客户对资源没有足够的访问权限
+        FILE_REQUEST,      // 文件已被请求
+        INTERNAL_ERROR,    // 服务器内部错误
+        CLOSED_CONNECTION  // 客户端已经关闭连接了
     };
     /* 行的读取状态 */
-    enum LINE_STATUS { LINE_OK = 0,  // 读取到完整的行
-                       LINE_BAD,     // 行出错
-                       LINE_OPEN     // 数据尚不完整
+    enum LINE_STATUS {
+        LINE_OK = 0, // 读取到完整的行
+        LINE_BAD,    // 行出错
+        LINE_OPEN    // 数据尚不完整
     };
 
-   public:
+  public:
     /* 初始化新接收的连接 */
     void init(int sockfd, const sockaddr_in &addr);
     /* 关闭连接 */
@@ -73,7 +68,7 @@ class http_conn {
     /* 非阻塞写操作 */
     bool write();
 
-   private:
+  private:
     /* 初始化连接 */
     void init();
     /* 解析HTTP请求 */
@@ -99,13 +94,13 @@ class http_conn {
     bool add_linger();
     bool add_blank_line();
 
-   public:
+  public:
     /* 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的 */
     static int m_epollfd;
     /* 统计用户数量 */
     static int m_user_count;
 
-   private:
+  private:
     /* 该HTTP连接的socket和对方的socket地址 */
     int m_sockfd;
     sockaddr_in m_address;
@@ -150,4 +145,4 @@ class http_conn {
     int m_iv_count;
 };
 
-#endif  // HTTPCONNECTION_H
+#endif // HTTPCONNECTION_H

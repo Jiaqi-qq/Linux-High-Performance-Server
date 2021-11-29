@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     http_conn::m_epollfd = epollfd;
 
     while (true) {
-        // printf("user_count: %d\n", http_conn::m_user_count);  // 数量并不准确
+        printf("user_count: %d\n", http_conn::m_user_count); // 数量并不准确
         int number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
         if ((number < 0) && (errno != EINTR)) {
             printf("epoll failure\n");
@@ -99,17 +99,20 @@ int main(int argc, char *argv[]) {
             if (sockfd == listenfd) {
                 struct sockaddr_in client_address;
                 socklen_t client_addrlength = sizeof(client_address);
-                int connfd = accept(listenfd, (struct sockaddr *)&client_address, &client_addrlength);
-                if (connfd < 0) {
-                    printf("errno is: %d\n", errno);
-                    continue;
+                int connfd = -1;
+                // int connfd = accept(listenfd, (struct sockaddr *)&client_address, &client_addrlength);
+                while ((connfd = accept(listenfd, (struct sockaddr *)&client_address, &client_addrlength)) > 0) {
+                    if (connfd < 0) {
+                        printf("errno is: %d\n", errno);
+                        continue;
+                    }
+                    if (http_conn::m_user_count >= MAX_FD) {
+                        show_error(connfd, "Internal server busy");
+                        continue;
+                    }
+                    /* 初始化客户连接 */
+                    users[connfd].init(connfd, client_address);
                 }
-                if (http_conn::m_user_count >= MAX_FD) {
-                    show_error(connfd, "Internal server busy");
-                    continue;
-                }
-                /* 初始化客户连接 */
-                users[connfd].init(connfd, client_address);
             } else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
                 /* 如果有异常，直接关闭客户连接 */
                 users[sockfd].close_conn();
@@ -118,7 +121,6 @@ int main(int argc, char *argv[]) {
                 if (users[sockfd].read()) {
                     pool->append(users + sockfd);
                 } else {
-                    printf("close");
                     users[sockfd].close_conn();
                 }
             } else if (events[i].events & EPOLLOUT) {
